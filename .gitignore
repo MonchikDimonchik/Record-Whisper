@@ -1,0 +1,26 @@
+# Python/local runtime
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.python-version
+
+# Downloaded Whisper models and generated app data
+models/
+recordings/
+output/
+test_audio/
+settings.json
+
+# macOS/local build artifacts
+.DS_Store
+dist/
+*.dmg
+*.pkg
+*.app/
+*.icns
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp

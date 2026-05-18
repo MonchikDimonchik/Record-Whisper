@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Whisper Local</title>
+    <link rel="stylesheet" href="/static/styles.css?v=9">
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div>
+          <h1>Whisper Local</h1>
+          <p id="modelInfo">Модель загружена</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="ghost-button" id="copyButton" type="button">Копировать</button>
+          <button class="danger-button" id="shutdownButton" type="button">Выключить</button>
+        </div>
+      </header>
+
+      <section class="workspace" aria-label="Распознавание аудио">
+        <section class="panel controls" aria-label="Источник аудио">
+          <h2>Источник</h2>
+
+          <label class="field-label" for="systemModeSelect">Режим записи</label>
+          <select id="systemModeSelect">
+            <option value="mixed">Приходящий + микрофон</option>
+            <option value="incoming">Только приходящий</option>
+            <option value="microphone">Только микрофон</option>
+            <option value="all">Все входы</option>
+          </select>
+
+          <label class="field-label" for="languageSelect">Язык распознавания</label>
+          <select id="languageSelect">
+            <option value="ru">Русский</option>
+            <option value="auto">Авто</option>
+            <option value="en">Английский</option>
+            <option value="uk">Украинский</option>
+            <option value="be">Белорусский</option>
+          </select>
+
+          <label class="field-label" for="incomingSelect">Приходящий звук</label>
+          <select id="incomingSelect"></select>
+          <div class="hint" id="routeHint"></div>
+
+          <label class="field-label" for="systemMicSelect">Микрофон</label>
+          <select id="systemMicSelect"></select>
+
+          <button class="small-button" id="refreshDevicesButton" type="button">
+            Обновить устройства
+          </button>
+
+          <label class="field-label" for="outputDirInput">Папка записи</label>
+          <div class="folder-row">
+            <input id="outputDirInput" type="text" spellcheck="false">
+            <button class="small-button" id="chooseFolderButton" type="button">
+              Выбрать
+            </button>
+          </div>
+
+          <label class="checkbox-row">
+            <input id="saveFilesCheckbox" type="checkbox" checked>
+            <span>Сохранять аудио и текст</span>
+          </label>
+
+          <div class="button-grid">
+            <button class="primary-button" id="systemStartButton" type="button">
+              Старт
+            </button>
+            <button class="stop-button" id="systemStopButton" type="button" disabled>
+              Стоп и текст
+            </button>
+          </div>
+
+          <input
+            id="fileInput"
+            type="file"
+            accept="audio/*,video/webm,video/mp4,.m4a,.mp3,.wav,.aiff,.aif,.ogg,.flac,.aac,.webm,.mp4"
+          >
+
+          <button class="action-button" id="fileButton" type="button">
+            Выбрать аудиофайл
+          </button>
+
+          <div class="status" id="status" role="status">Готово</div>
+          <audio id="preview" controls hidden></audio>
+        </section>
+
+        <section class="panel transcript" aria-label="Результат">
+          <div class="transcript-header">
+            <h2>Текст</h2>
+            <span id="resultMeta"></span>
+          </div>
+          <textarea id="output" placeholder="Текст появится здесь"></textarea>
+        </section>
+      </section>
+    </main>
+
+    <script src="/static/app.js?v=11"></script>
+  </body>
+</html>
