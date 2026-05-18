@@ -42,66 +42,77 @@ func roundedRect(_ rect: NSRect, radius: CGFloat, fill: NSColor, stroke: NSColor
 }
 
 func makeBackground() -> NSImage {
-    let size = NSSize(width: 760, height: 440)
+    let size = NSSize(width: 640, height: 420)
     let image = NSImage(size: size)
 
     image.lockFocus()
-    color(0xf7f8f5).setFill()
+    color(0xf6f8f4).setFill()
     NSRect(origin: .zero, size: size).fill()
 
-    roundedRect(
-        NSRect(x: 24, y: 24, width: 712, height: 392),
-        radius: 28,
-        fill: color(0xffffff),
-        stroke: color(0xdfe4dc),
-        lineWidth: 1.5
-    )
+    let topBand = NSBezierPath(rect: NSRect(x: 0, y: 302, width: 640, height: 118))
+    color(0xffffff).setFill()
+    topBand.fill()
+
+    let separator = NSBezierPath()
+    separator.move(to: NSPoint(x: 0, y: 302))
+    separator.line(to: NSPoint(x: 640, y: 302))
+    color(0xdfe4dc).setStroke()
+    separator.lineWidth = 1
+    separator.stroke()
 
     drawText(
         "Whisper Local",
-        rect: NSRect(x: 90, y: 340, width: 580, height: 42),
-        size: 30,
+        rect: NSRect(x: 70, y: 365, width: 500, height: 34),
+        size: 26,
         weight: .bold,
         color: color(0x20241f)
     )
     drawText(
-        "Перетащите приложение в Applications",
-        rect: NSRect(x: 90, y: 308, width: 580, height: 28),
-        size: 18,
+        "Перетащите приложение в папку Applications",
+        rect: NSRect(x: 70, y: 334, width: 500, height: 24),
+        size: 16,
         weight: .medium,
         color: color(0x667064)
     )
     drawText(
         "Первый запуск скачает модель Whisper и нужные пакеты",
-        rect: NSRect(x: 90, y: 54, width: 580, height: 24),
-        size: 14,
+        rect: NSRect(x: 78, y: 28, width: 484, height: 24),
+        size: 13,
         weight: .regular,
         color: color(0x667064)
     )
 
+    roundedRect(
+        NSRect(x: 78, y: 86, width: 484, height: 190),
+        radius: 24,
+        fill: NSColor.white.withAlphaComponent(0.58),
+        stroke: color(0xe5eadf),
+        lineWidth: 1
+    )
+
     let arrow = NSBezierPath()
-    arrow.move(to: NSPoint(x: 285, y: 222))
+    arrow.move(to: NSPoint(x: 250, y: 184))
     arrow.curve(
-        to: NSPoint(x: 475, y: 222),
-        controlPoint1: NSPoint(x: 345, y: 250),
-        controlPoint2: NSPoint(x: 415, y: 250)
+        to: NSPoint(x: 390, y: 184),
+        controlPoint1: NSPoint(x: 294, y: 210),
+        controlPoint2: NSPoint(x: 346, y: 210)
     )
     color(0x0f7c6b).setStroke()
-    arrow.lineWidth = 7
+    arrow.lineWidth = 6
     arrow.lineCapStyle = .round
     arrow.stroke()
 
     let arrowHead = NSBezierPath()
-    arrowHead.move(to: NSPoint(x: 475, y: 222))
-    arrowHead.line(to: NSPoint(x: 447, y: 240))
-    arrowHead.line(to: NSPoint(x: 454, y: 222))
-    arrowHead.line(to: NSPoint(x: 447, y: 204))
+    arrowHead.move(to: NSPoint(x: 394, y: 184))
+    arrowHead.line(to: NSPoint(x: 366, y: 202))
+    arrowHead.line(to: NSPoint(x: 374, y: 184))
+    arrowHead.line(to: NSPoint(x: 366, y: 166))
     arrowHead.close()
     color(0x0f7c6b).setFill()
     arrowHead.fill()
 
-    drawText("1", rect: NSRect(x: 139, y: 160, width: 80, height: 24), size: 18, weight: .bold, color: color(0x0f7c6b))
-    drawText("2", rect: NSRect(x: 539, y: 160, width: 80, height: 24), size: 18, weight: .bold, color: color(0x0f7c6b))
+    drawText("1", rect: NSRect(x: 132, y: 106, width: 56, height: 24), size: 17, weight: .bold, color: color(0x0f7c6b))
+    drawText("2", rect: NSRect(x: 452, y: 106, width: 56, height: 24), size: 17, weight: .bold, color: color(0x0f7c6b))
 
     image.unlockFocus()
     return image

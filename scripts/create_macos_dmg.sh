@@ -14,7 +14,7 @@ PYTHON_BIN="${PYTHON_BIN:-python3.12}"
 
 mkdir -p "$DIST_DIR"
 swift "$ROOT_DIR/scripts/generate_macos_assets.swift" background "$BACKGROUND_PATH"
-sips -z 440 760 "$BACKGROUND_PATH" >/dev/null
+sips -z 420 640 "$BACKGROUND_PATH" >/dev/null
 
 if [ ! -x "$DMGBUILD_PYTHON" ]; then
   rm -rf "$DMGBUILD_VENV"

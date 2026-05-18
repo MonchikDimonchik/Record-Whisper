@@ -9,7 +9,6 @@ compression_level = 9
 
 files = [
     str(DIST_DIR / "Whisper Local.app"),
-    str(ROOT_DIR / "INSTALL.md"),
 ]
 
 symlinks = {
@@ -17,7 +16,7 @@ symlinks = {
 }
 
 background = str(DIST_DIR / "dmg-background.png")
-window_rect = ((180, 120), (760, 440))
+window_rect = ((220, 140), (640, 420))
 default_view = "icon-view"
 show_status_bar = False
 show_tab_view = False
@@ -26,12 +25,11 @@ show_pathbar = False
 show_sidebar = False
 sidebar_width = 0
 
-icon_size = 104
+icon_size = 96
 text_size = 14
 arrange_by = None
 
 icon_locations = {
-    "Whisper Local.app": (180, 230),
-    "Applications": (580, 230),
-    "INSTALL.md": (380, 352),
+    "Whisper Local.app": (160, 190),
+    "Applications": (480, 190),
 }
