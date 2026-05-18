@@ -19,6 +19,9 @@ dist/
 *.pkg
 *.app/
 *.icns
+!packages/
+!packages/*.dmg
+!packages/*.sha256
 
 # Logs and temp files
 *.log
