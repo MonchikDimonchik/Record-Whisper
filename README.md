@@ -1,4 +1,4 @@
-# Whisper Local
+# Record-Whisper
 
 Локальное macOS-приложение для перевода аудио в текст через Whisper. Можно распознавать готовые аудиофайлы, микрофон, системный звук через BlackHole и смешанный режим “браузер + микрофон”.
 
@@ -8,11 +8,11 @@
 
 Готовый установочный пакет:
 
-[Скачать Whisper Local для macOS](packages/Whisper-Local-macOS.dmg)
+[Скачать Record-Whisper для macOS](packages/Record-Whisper-macOS.dmg)
 
-После открытия DMG перетащите `Whisper Local` по стрелке в `Applications`.
+После открытия DMG перетащите `Record-Whisper` по стрелке в `Applications`.
 
-При первом запуске нужен интернет: приложение создаст локальное Python-окружение, скачает зависимости и модель Whisper `medium`. Это может занять несколько минут.
+При первом запуске нужен интернет: приложение скачает модель Whisper `medium`. Это может занять несколько минут. Python runtime и Python-пакеты уже лежат внутри `.app`.
 
 ## Возможности
 
@@ -24,32 +24,25 @@
 - Сохранение аудио и текста рядом.
 - Выбор языка распознавания. По умолчанию стоит `Русский`, чтобы Whisper не путал русскую речь с близкими языками.
 - Кнопка выключения внутреннего сервера из интерфейса.
-- Сборка красивого DMG-установщика со стрелкой `Whisper Local -> Applications`.
+- Сборка красивого DMG-установщика со стрелкой `Record-Whisper -> Applications`.
 
 ## Требования
 
 - macOS 13 или новее.
-- `python3.12` на компьютере.
-- Интернет при первом запуске для скачивания Python-пакетов и модели Whisper.
+- Интернет при первом запуске для скачивания модели Whisper.
 - Для записи системного звука: `BlackHole 2ch` или другой виртуальный аудиодрайвер.
-
-Проверить Python:
-
-```bash
-python3.12 --version
-```
 
 ## Быстрый Старт
 
-1. Скачайте [Whisper-Local-macOS.dmg](packages/Whisper-Local-macOS.dmg).
+1. Скачайте [Record-Whisper-macOS.dmg](packages/Record-Whisper-macOS.dmg).
 2. Откройте DMG.
-3. Перетащите `Whisper Local` в `Applications`.
-4. Запустите `Whisper Local` из `Applications`.
-5. При первом запуске дождитесь скачивания зависимостей и модели.
+3. Перетащите `Record-Whisper` в `Applications`.
+4. Запустите `Record-Whisper` из `Applications`.
+5. При первом запуске дождитесь скачивания модели.
 
 Если macOS пишет, что приложение от неизвестного разработчика:
 
-1. Нажмите правой кнопкой по `Whisper Local`.
+1. Нажмите правой кнопкой по `Record-Whisper`.
 2. Выберите `Открыть`.
 3. Подтвердите `Открыть`.
 
@@ -60,12 +53,11 @@ python3.12 --version
 Версия `.app` хранит рабочие данные здесь:
 
 ```text
-~/Library/Application Support/Whisper Local
+~/Library/Application Support/Record-Whisper
 ```
 
 Там создаются:
 
-- `.venv` с Python-пакетами;
 - `models` с моделью Whisper;
 - `settings.json` с настройками;
 - `recordings` с записями по умолчанию.
@@ -102,7 +94,7 @@ brew install --cask blackhole-2ch
 8. `BlackHole 2ch` оставьте главным устройством.
 9. В `System Settings -> Sound -> Output` выберите созданное `Multi-Output Device`.
 
-Настройка в Whisper Local:
+Настройка в Record-Whisper:
 
 - `Режим записи`: `Приходящий + микрофон`
 - `Приходящий звук`: `BlackHole 2ch`
@@ -132,7 +124,7 @@ brew install --cask blackhole-2ch
 Результат:
 
 ```text
-dist/Whisper Local.app
+dist/Record-Whisper.app
 ```
 
 Собрать установочный DMG:
@@ -144,18 +136,18 @@ dist/Whisper Local.app
 Результат:
 
 ```text
-dist/Whisper Local.dmg
+dist/Record-Whisper.dmg
 ```
 
 Скрипт DMG:
 
 - собирает Swift-обертку с `WKWebView`;
-- добавляет Python/FastAPI приложение внутрь `.app`;
+- добавляет Python runtime, Python-пакеты и FastAPI backend внутрь `.app`;
 - генерирует иконку приложения;
 - генерирует фон установщика со стрелкой;
-- создает DMG с раскладкой `Whisper Local -> Applications`.
+- создает DMG с раскладкой `Record-Whisper -> Applications`.
 
-Модель Whisper и Python-пакеты не кладутся в DMG. Они скачиваются при первом запуске приложения.
+Python runtime и Python-пакеты кладутся внутрь `.app`. Модель Whisper не кладется в DMG и скачивается при первом запуске приложения.
 
 ## Запуск Без Пакета
 
@@ -236,4 +228,4 @@ WHISPER_MODEL=large-v3 WHISPER_COMPUTE_TYPE=float32 ./run.sh
 - `.DS_Store`
 - временные файлы и логи
 
-Готовый легкий DMG для пользователей лежит отдельно в `packages/`.
+Готовый DMG для пользователей лежит отдельно в `packages/`.

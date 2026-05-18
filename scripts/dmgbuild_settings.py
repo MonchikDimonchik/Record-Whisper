@@ -4,11 +4,11 @@ ROOT_DIR = Path(defines["root"])
 DIST_DIR = ROOT_DIR / "dist"
 
 format = "UDZO"
-size = "32M"
+size = "512M"
 compression_level = 9
 
 files = [
-    str(DIST_DIR / "Whisper Local.app"),
+    str(DIST_DIR / "Record-Whisper.app"),
 ]
 
 symlinks = {
@@ -30,6 +30,6 @@ text_size = 14
 arrange_by = None
 
 icon_locations = {
-    "Whisper Local.app": (160, 190),
+    "Record-Whisper.app": (160, 190),
     "Applications": (480, 190),
 }

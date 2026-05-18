@@ -1,18 +1,18 @@
-# Установка Whisper Local
+# Установка Record-Whisper
 
 ## 1. Установка приложения
 
-Откройте `Whisper Local.dmg` и перенесите `Whisper Local.app` в `Applications`.
+Откройте `Record-Whisper.dmg` и перенесите `Record-Whisper.app` в `Applications`.
 
-При первом запуске приложение скачает Python-библиотеки и модель Whisper `medium`. Это может занять несколько минут. Нужен интернет.
+При первом запуске приложение скачает модель Whisper `medium`. Это может занять несколько минут. Нужен интернет.
 
 Данные приложения хранятся здесь:
 
 ```text
-~/Library/Application Support/Whisper Local
+~/Library/Application Support/Record-Whisper
 ```
 
-Там будут виртуальное Python-окружение, модель, настройки и записи по умолчанию.
+Там будут модель, настройки и записи по умолчанию.
 
 ## 2. Разрешения macOS
 
@@ -22,7 +22,7 @@
 System Settings -> Privacy & Security -> Microphone
 ```
 
-В списке должно быть разрешение для `Whisper Local`.
+В списке должно быть разрешение для `Record-Whisper`.
 
 ## 3. Установка BlackHole
 
@@ -65,7 +65,7 @@ Applications -> Utilities -> Audio MIDI Setup
 System Settings -> Sound -> Output -> Multi-Output Device
 ```
 
-## 5. Настройка в Whisper Local
+## 5. Настройка в Record-Whisper
 
 Для записи видео/браузера и микрофона:
 

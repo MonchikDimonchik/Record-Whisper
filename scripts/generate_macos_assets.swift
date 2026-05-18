@@ -12,7 +12,7 @@ func savePNG(_ image: NSImage, to url: URL) throws {
     guard let tiffData = image.tiffRepresentation,
           let bitmap = NSBitmapImageRep(data: tiffData),
           let pngData = bitmap.representation(using: .png, properties: [:]) else {
-        throw NSError(domain: "WhisperLocalAssets", code: 1)
+        throw NSError(domain: "RecordWhisperAssets", code: 1)
     }
     try pngData.write(to: url)
 }
@@ -61,7 +61,7 @@ func makeBackground() -> NSImage {
     separator.stroke()
 
     drawText(
-        "Whisper Local",
+        "Record-Whisper",
         rect: NSRect(x: 70, y: 365, width: 500, height: 34),
         size: 26,
         weight: .bold,

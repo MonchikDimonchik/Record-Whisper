@@ -3,8 +3,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 DIST_DIR="$ROOT_DIR/dist"
-DMG_PATH="$DIST_DIR/Whisper Local.dmg"
-VOLUME_NAME="Whisper Local"
+DMG_PATH="$DIST_DIR/Record-Whisper.dmg"
+VOLUME_NAME="Record-Whisper"
 DMGBUILD_VENV="$DIST_DIR/.dmgbuild-venv"
 DMGBUILD_PYTHON="$DMGBUILD_VENV/bin/python"
 BACKGROUND_PATH="$DIST_DIR/dmg-background.png"

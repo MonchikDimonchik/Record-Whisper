@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import platform
 import json
+import multiprocessing
 import shutil
 import subprocess
 import tempfile
@@ -55,10 +56,27 @@ def load_whisper_model() -> WhisperModel:
     )
 
 
-MODEL = load_whisper_model()
-app = FastAPI(title="Whisper Local")
+MODEL: WhisperModel | None = None
+MODEL_LOCK = threading.Lock()
+
+
+def get_whisper_model() -> WhisperModel:
+    global MODEL
+    if MODEL is None:
+        with MODEL_LOCK:
+            if MODEL is None:
+                MODEL = load_whisper_model()
+    return MODEL
+
+
+app = FastAPI(title="Record-Whisper")
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 SERVER: uvicorn.Server | None = None
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    await run_in_threadpool(get_whisper_model)
 
 
 def is_loopback_name(name: str) -> bool:
@@ -412,7 +430,7 @@ def transcribe_file(audio_path: Path) -> dict[str, object]:
     if language_setting != "auto":
         transcribe_options["language"] = language_setting
 
-    segments, info = MODEL.transcribe(
+    segments, info = get_whisper_model().transcribe(
         str(audio_path),
         **transcribe_options,
     )
@@ -625,6 +643,8 @@ def open_browser_later(url: str) -> None:
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
+
     port = int(os.getenv("PORT", "7860"))
     host = "127.0.0.1"
     url = f"http://{host}:{port}"
