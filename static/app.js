@@ -152,7 +152,7 @@ function setControls(mode) {
   const transcribing = mode === "transcribing";
   const disabled = recording || transcribing;
 
-  fileButton.disabled = disabled;
+  fileButton.setAttribute("aria-disabled", disabled ? "true" : "false");
   systemStartButton.disabled = disabled;
   refreshDevicesButton.disabled = disabled;
   languageSelect.disabled = disabled;
@@ -557,9 +557,18 @@ async function loadConfig() {
   }
 }
 
-fileButton.addEventListener("click", () => fileInput.click());
+fileButton.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    fileInput.click();
+  }
+});
 
 fileInput.addEventListener("change", async () => {
+  if (fileButton.getAttribute("aria-disabled") === "true") {
+    fileInput.value = "";
+    return;
+  }
   const file = fileInput.files?.[0];
   if (!file) {
     return;

@@ -26,12 +26,14 @@ body {
 }
 
 button,
+.file-label,
 textarea,
 select {
   font: inherit;
 }
 
-button {
+button,
+.file-label {
   min-height: 44px;
   border: 1px solid transparent;
   border-radius: 8px;
@@ -40,7 +42,8 @@ button {
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 
-button:disabled {
+button:disabled,
+.file-label[aria-disabled="true"] {
   cursor: not-allowed;
   opacity: 0.55;
 }
@@ -138,7 +141,11 @@ button:disabled {
 }
 
 #fileInput {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .button-grid {
@@ -227,6 +234,7 @@ button:disabled {
 }
 
 .action-button,
+.file-label,
 .ghost-button,
 .danger-button,
 .small-button,
@@ -237,6 +245,7 @@ button:disabled {
 }
 
 .action-button:hover:not(:disabled),
+.file-label:hover:not([aria-disabled="true"]),
 .ghost-button:hover:not(:disabled),
 .small-button:hover:not(:disabled) {
   border-color: var(--accent);
@@ -264,8 +273,21 @@ button:disabled {
 
 .primary-button,
 .stop-button,
-.action-button {
+.action-button,
+.file-label {
   font-weight: 650;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  user-select: none;
+}
+
+.file-label[aria-disabled="true"] {
+  pointer-events: none;
 }
 
 .stop-button:hover:not(:disabled) {

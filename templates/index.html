@@ -79,9 +79,15 @@
             accept="audio/*,video/webm,video/mp4,.m4a,.mp3,.wav,.aiff,.aif,.ogg,.flac,.aac,.webm,.mp4"
           >
 
-          <button class="action-button" id="fileButton" type="button">
+          <label
+            class="action-button file-label"
+            id="fileButton"
+            for="fileInput"
+            role="button"
+            tabindex="0"
+          >
             Распознать аудиофайл
-          </button>
+          </label>
 
           <div class="status" id="status" role="status">Готово</div>
           <audio id="preview" controls hidden></audio>
