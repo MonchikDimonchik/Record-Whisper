@@ -15,6 +15,18 @@ BUILD_PYTHON="$BUILD_VENV/bin/python"
 PYINSTALLER_DIST="$DIST_DIR/pyinstaller-dist"
 PYINSTALLER_BUILD="$DIST_DIR/pyinstaller-build"
 
+clean_extended_attributes() {
+  local target="$1"
+
+  if command -v xattr >/dev/null 2>&1; then
+    xattr -cr "$target" 2>/dev/null || true
+    find "$target" -exec xattr -c {} + 2>/dev/null || true
+    find "$target" -exec xattr -d com.apple.FinderInfo {} + 2>/dev/null || true
+    find "$target" -exec xattr -d com.apple.ResourceFork {} + 2>/dev/null || true
+    find "$target" -exec xattr -d com.apple.provenance {} + 2>/dev/null || true
+  fi
+}
+
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$BACKEND_RESOURCES_DIR"
 
@@ -103,14 +115,13 @@ PLIST
 
 chmod +x "$MACOS_DIR/$APP_NAME" "$BACKEND_RESOURCES_DIR/RecordWhisperBackend/RecordWhisperBackend"
 
-if command -v xattr >/dev/null 2>&1; then
-  xattr -cr "$APP_DIR"
-  xattr -dr com.apple.provenance "$APP_DIR" 2>/dev/null || true
-fi
+clean_extended_attributes "$APP_DIR"
 
 if command -v codesign >/dev/null 2>&1; then
   codesign --force --deep --sign - "$APP_DIR" >/dev/null 2>&1 || {
-    echo "Warning: ad-hoc signing skipped; macOS kept extended attributes on $APP_DIR" >&2
+    rm -rf "$CONTENTS_DIR/_CodeSignature"
+    clean_extended_attributes "$APP_DIR"
+    echo "Warning: ad-hoc signing skipped; unsigned app will require right-click Open on first launch." >&2
   }
 fi
 

@@ -11,6 +11,10 @@ BACKGROUND_PATH="$DIST_DIR/dmg-background.png"
 PYTHON_BIN="${PYTHON_BIN:-python3.12}"
 
 "$ROOT_DIR/scripts/build_macos_app.sh" >/dev/null
+if command -v xattr >/dev/null 2>&1; then
+  xattr -cr "$DIST_DIR/Record-Whisper.app" 2>/dev/null || true
+  find "$DIST_DIR/Record-Whisper.app" -exec xattr -c {} + 2>/dev/null || true
+fi
 
 mkdir -p "$DIST_DIR"
 swift "$ROOT_DIR/scripts/generate_macos_assets.swift" background "$BACKGROUND_PATH"
