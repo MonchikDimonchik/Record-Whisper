@@ -4,18 +4,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Record-Whisper</title>
-    <link rel="stylesheet" href="/static/styles.css?v=9">
+    <link rel="stylesheet" href="/static/styles.css?v=10">
   </head>
   <body>
     <main class="app">
       <header class="topbar">
         <div>
           <h1>Record-Whisper</h1>
-          <p id="modelInfo">Модель загружена</p>
+          <p id="modelInfo">Проверяю модель</p>
         </div>
         <div class="topbar-actions">
-          <button class="ghost-button" id="copyButton" type="button">Копировать</button>
-          <button class="danger-button" id="shutdownButton" type="button">Выключить</button>
+          <button class="ghost-button" id="copyButton" type="button">Копировать текст</button>
+          <button class="danger-button" id="shutdownButton" type="button">Завершить</button>
         </div>
       </header>
 
@@ -48,14 +48,14 @@
           <select id="systemMicSelect"></select>
 
           <button class="small-button" id="refreshDevicesButton" type="button">
-            Обновить устройства
+            Обновить список устройств
           </button>
 
           <label class="field-label" for="outputDirInput">Папка записи</label>
           <div class="folder-row">
             <input id="outputDirInput" type="text" spellcheck="false">
             <button class="small-button" id="chooseFolderButton" type="button">
-              Выбрать
+              Выбрать папку
             </button>
           </div>
 
@@ -66,10 +66,10 @@
 
           <div class="button-grid">
             <button class="primary-button" id="systemStartButton" type="button">
-              Старт
+              Начать запись
             </button>
             <button class="stop-button" id="systemStopButton" type="button" disabled>
-              Стоп и текст
+              Остановить и распознать
             </button>
           </div>
 
@@ -80,7 +80,7 @@
           >
 
           <button class="action-button" id="fileButton" type="button">
-            Выбрать аудиофайл
+            Распознать аудиофайл
           </button>
 
           <div class="status" id="status" role="status">Готово</div>
@@ -97,6 +97,6 @@
       </section>
     </main>
 
-    <script src="/static/app.js?v=11"></script>
+    <script src="/static/app.js?v=13"></script>
   </body>
 </html>

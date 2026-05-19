@@ -6,6 +6,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     private var webView: WKWebView!
     private var backend: Process?
     private var pollTimer: Timer?
+    private var pollAttempts = 0
     private let port = 7860
     private let appName = "Record-Whisper"
 
@@ -69,6 +70,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
               width: min(520px, calc(100vw - 48px));
               line-height: 1.45;
             }
+            .loader {
+              width: 34px;
+              height: 34px;
+              margin-bottom: 22px;
+              border: 4px solid #dfe4dc;
+              border-top-color: #0f7c6b;
+              border-radius: 50%;
+              animation: spin 900ms linear infinite;
+            }
             h1 {
               margin: 0 0 10px;
               font-size: 28px;
@@ -77,12 +87,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
               margin: 0;
               color: #667064;
             }
+            small {
+              display: block;
+              margin-top: 14px;
+              color: #8a9287;
+              font-size: 13px;
+            }
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
           </style>
         </head>
         <body>
           <main>
+            <div class="loader" aria-hidden="true"></div>
             <h1>Record-Whisper</h1>
             <p>\(message)</p>
+            <small>Если окно долго висит здесь, откройте лог в ~/Library/Application Support/Record-Whisper/backend.log.</small>
           </main>
         </body>
         </html>
@@ -107,10 +128,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
         process.currentDirectoryURL = backendURL
 
         var environment = ProcessInfo.processInfo.environment
+        let appSupportPath = "\(NSHomeDirectory())/Library/Application Support/Record-Whisper"
         environment["PORT"] = "\(port)"
         environment["WHISPER_OPEN_BROWSER"] = "0"
-        environment["WHISPER_DATA_DIR"] = "\(NSHomeDirectory())/Library/Application Support/Record-Whisper"
+        environment["WHISPER_DATA_DIR"] = appSupportPath
+        environment["PYTHONUNBUFFERED"] = "1"
         process.environment = environment
+
+        try? FileManager.default.createDirectory(
+            atPath: appSupportPath,
+            withIntermediateDirectories: true
+        )
+        let logPath = "\(appSupportPath)/backend.log"
+        FileManager.default.createFile(atPath: logPath, contents: nil)
+        if let logHandle = FileHandle(forWritingAtPath: logPath) {
+            process.standardOutput = logHandle
+            process.standardError = logHandle
+        }
 
         do {
             try process.run()
@@ -122,10 +156,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
 
     private func waitForBackend() {
         pollTimer?.invalidate()
+        pollAttempts = 0
         pollTimer = Timer.scheduledTimer(withTimeInterval: 0.7, repeats: true) { [weak self] timer in
             guard let self else { return }
 
-            var request = URLRequest(url: self.baseURL.appendingPathComponent("config"))
+            self.pollAttempts += 1
+            if self.pollAttempts == 20 {
+                self.showLoading("Внутренний сервис запускается дольше обычного. Проверяю дальше; лог пишется в backend.log.")
+            }
+
+            var request = URLRequest(url: self.baseURL.appendingPathComponent("health"))
             request.timeoutInterval = 0.5
 
             URLSession.shared.dataTask(with: request) { _data, response, _error in

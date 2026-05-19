@@ -21,6 +21,8 @@ const preview = document.querySelector("#preview");
 
 let isSystemRecording = false;
 let statusTimer = null;
+let modelStatusTimer = null;
+let modelState = "idle";
 let inputDevices = [];
 const languageLabels = {
   auto: "авто",
@@ -33,6 +35,60 @@ const languageLabels = {
 function setStatus(text, state = "idle") {
   statusLine.textContent = text;
   statusLine.dataset.state = state;
+}
+
+function setModelInfo(data) {
+  modelState = data.state || "idle";
+  modelInfo.dataset.state = modelState;
+
+  const base = `${data.model || "medium"} · ${data.device || "cpu"} · ${data.compute_type || "float32"}`;
+  if (modelState === "ready") {
+    modelInfo.textContent = `${base} · готова`;
+    return;
+  }
+  if (modelState === "loading") {
+    modelInfo.textContent = `${base} · скачивается/загружается`;
+    return;
+  }
+  if (modelState === "error") {
+    modelInfo.textContent = `${base} · ошибка загрузки`;
+    setStatus(data.message || "Модель Whisper не загрузилась.", "error");
+    return;
+  }
+
+  modelInfo.textContent = `${base} · ожидает загрузки`;
+}
+
+async function refreshModelStatus() {
+  try {
+    const response = await fetch("/model-status");
+    const data = await jsonOrEmpty(response);
+    if (!response.ok) {
+      throw new Error(data.detail || "Не получилось получить статус модели.");
+    }
+    setModelInfo(data);
+  } catch {
+    modelInfo.dataset.state = "error";
+    modelInfo.textContent = "Статус модели недоступен";
+  }
+}
+
+function startModelStatusPolling() {
+  refreshModelStatus();
+  if (modelStatusTimer) {
+    window.clearInterval(modelStatusTimer);
+  }
+  modelStatusTimer = window.setInterval(refreshModelStatus, 1000);
+}
+
+function transcriptionStatusText(defaultText) {
+  if (modelState === "ready") {
+    return defaultText;
+  }
+  if (modelState === "error") {
+    return "Повторяю загрузку модели и распознаю аудио";
+  }
+  return "Готовлю модель Whisper: скачивание или загрузка";
 }
 
 function percentLevel(value) {
@@ -265,7 +321,7 @@ async function transcribeFile(file, fallbackName = "recording.wav") {
   formData.append("save", saveFilesCheckbox.checked ? "true" : "false");
 
   setControls("transcribing");
-  setStatus("Распознаю аудио", "busy");
+  setStatus(transcriptionStatusText("Распознаю аудио"), "busy");
 
   try {
     const response = await fetch("/transcribe", {
@@ -446,7 +502,7 @@ async function stopSystemRecording() {
   formData.append("save", saveFilesCheckbox.checked ? "true" : "false");
 
   setControls("transcribing");
-  setStatus("Останавливаю и распознаю", "busy");
+  setStatus(transcriptionStatusText("Останавливаю и распознаю"), "busy");
   stopStatusPolling();
 
   try {
@@ -487,11 +543,17 @@ async function loadConfig() {
   try {
     const response = await fetch("/config");
     const config = await jsonOrEmpty(response);
-    modelInfo.textContent = `${config.model} · ${config.device} · ${config.compute_type}`;
+    setModelInfo({
+      state: config.model_state || "idle",
+      model: config.model,
+      device: config.device,
+      compute_type: config.compute_type,
+    });
     outputDirInput.value = config.output_dir || "";
     languageSelect.value = config.language || "ru";
   } catch {
-    modelInfo.textContent = "Модель загружена";
+    modelInfo.dataset.state = "error";
+    modelInfo.textContent = "Конфиг недоступен";
   }
 }
 
@@ -562,4 +624,5 @@ shutdownButton.addEventListener("click", async () => {
 
 setControls("idle");
 loadConfig();
+startModelStatusPolling();
 loadAudioDevices();

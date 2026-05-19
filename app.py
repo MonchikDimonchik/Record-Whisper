@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import tempfile
 import threading
+import traceback
 import webbrowser
 import wave
 from datetime import datetime
@@ -42,8 +43,12 @@ DEFAULT_LANGUAGE = os.getenv("WHISPER_LANGUAGE", "ru").strip().lower() or "ru"
 SUPPORTED_LANGUAGES = {"auto", "ru", "en", "uk", "be"}
 
 
+class ModelLoadError(RuntimeError):
+    pass
+
+
 def load_whisper_model() -> WhisperModel:
-    MODEL_DIR.mkdir(exist_ok=True)
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
     print(
         "Loading Whisper model "
         f"'{MODEL_SIZE}' on {DEVICE} with compute_type={COMPUTE_TYPE}..."
@@ -58,15 +63,103 @@ def load_whisper_model() -> WhisperModel:
 
 MODEL: WhisperModel | None = None
 MODEL_LOCK = threading.Lock()
+MODEL_READY = threading.Event()
+MODEL_LOADING = False
+MODEL_ERROR: str | None = None
+MODEL_STARTED_AT: datetime | None = None
+MODEL_FINISHED_AT: datetime | None = None
+
+
+def ensure_data_dirs() -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    DEFAULT_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def model_status() -> dict[str, object]:
+    with MODEL_LOCK:
+        if MODEL is not None:
+            state = "ready"
+            message = "Модель загружена и готова."
+        elif MODEL_LOADING:
+            state = "loading"
+            message = "Модель Whisper скачивается или загружается. Первый запуск может занять несколько минут."
+        elif MODEL_ERROR:
+            state = "error"
+            message = MODEL_ERROR
+        else:
+            state = "idle"
+            message = "Модель еще не загружалась."
+
+        return {
+            "state": state,
+            "message": message,
+            "model": MODEL_SIZE,
+            "device": DEVICE,
+            "compute_type": COMPUTE_TYPE,
+            "model_dir": str(MODEL_DIR),
+            "started_at": MODEL_STARTED_AT.isoformat() if MODEL_STARTED_AT else None,
+            "finished_at": MODEL_FINISHED_AT.isoformat() if MODEL_FINISHED_AT else None,
+        }
+
+
+def start_model_preload() -> None:
+    thread = threading.Thread(target=_preload_model, name="whisper-model-preload", daemon=True)
+    thread.start()
+
+
+def _preload_model() -> None:
+    try:
+        get_whisper_model()
+    except Exception:
+        traceback.print_exc()
 
 
 def get_whisper_model() -> WhisperModel:
-    global MODEL
-    if MODEL is None:
+    global MODEL, MODEL_ERROR, MODEL_FINISHED_AT, MODEL_LOADING, MODEL_STARTED_AT
+
+    with MODEL_LOCK:
+        if MODEL is not None:
+            return MODEL
+
+        if MODEL_LOADING:
+            wait_for_loading = True
+        else:
+            wait_for_loading = False
+            MODEL_LOADING = True
+            MODEL_ERROR = None
+            MODEL_STARTED_AT = datetime.now()
+            MODEL_FINISHED_AT = None
+            MODEL_READY.clear()
+
+    if wait_for_loading:
+        MODEL_READY.wait()
         with MODEL_LOCK:
-            if MODEL is None:
-                MODEL = load_whisper_model()
-    return MODEL
+            if MODEL is not None:
+                return MODEL
+            raise ModelLoadError(MODEL_ERROR or "Модель Whisper не загрузилась.")
+
+    try:
+        loaded_model = load_whisper_model()
+    except Exception as exc:
+        error_message = (
+            "Не получилось загрузить модель Whisper. "
+            f"Путь модели: {MODEL_DIR}. Ошибка: {exc}"
+        )
+        with MODEL_LOCK:
+            MODEL_ERROR = error_message
+            MODEL_LOADING = False
+            MODEL_FINISHED_AT = datetime.now()
+            MODEL_READY.set()
+        raise ModelLoadError(error_message) from exc
+
+    with MODEL_LOCK:
+        MODEL = loaded_model
+        MODEL_LOADING = False
+        MODEL_ERROR = None
+        MODEL_FINISHED_AT = datetime.now()
+        MODEL_READY.set()
+        return MODEL
 
 
 app = FastAPI(title="Record-Whisper")
@@ -76,7 +169,8 @@ SERVER: uvicorn.Server | None = None
 
 @app.on_event("startup")
 async def startup() -> None:
-    await run_in_threadpool(get_whisper_model)
+    ensure_data_dirs()
+    start_model_preload()
 
 
 def is_loopback_name(name: str) -> bool:
@@ -241,6 +335,8 @@ class SystemAudioRecorder:
             return result
         except HTTPException:
             raise
+        except ModelLoadError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
         except Exception as exc:
             raise HTTPException(
                 status_code=500,
@@ -341,6 +437,7 @@ def load_settings() -> dict[str, str]:
 
 
 def save_settings(settings: dict[str, str]) -> None:
+    SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
     SETTINGS_PATH.write_text(
         json.dumps(settings, ensure_ascii=False, indent=2),
         encoding="utf-8",
@@ -464,6 +561,22 @@ async def index() -> str:
     return (TEMPLATES_DIR / "index.html").read_text(encoding="utf-8")
 
 
+@app.get("/health")
+async def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@app.get("/model-status")
+async def get_model_status() -> dict[str, object]:
+    return model_status()
+
+
+@app.post("/model/retry")
+async def retry_model_load() -> dict[str, object]:
+    start_model_preload()
+    return model_status()
+
+
 @app.get("/config")
 async def config() -> dict[str, str]:
     return {
@@ -472,6 +585,7 @@ async def config() -> dict[str, str]:
         "compute_type": COMPUTE_TYPE,
         "output_dir": str(load_output_dir()),
         "language": load_transcription_language(),
+        "model_state": str(model_status()["state"]),
     }
 
 
@@ -604,6 +718,8 @@ async def transcribe(upload: UploadFile = File(...), save: bool = Form(True)) ->
         return result
     except HTTPException:
         raise
+    except ModelLoadError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(
             status_code=500,

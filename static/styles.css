@@ -35,6 +35,7 @@ button {
   min-height: 44px;
   border: 1px solid transparent;
   border-radius: 8px;
+  padding: 0 14px;
   cursor: pointer;
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
 }
@@ -61,6 +62,8 @@ button:disabled {
 .topbar-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 10px;
 }
 
@@ -80,6 +83,32 @@ button:disabled {
   margin: 8px 0 0;
   color: var(--muted);
   font-size: 14px;
+}
+
+#modelInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#modelInfo[data-state="loading"]::before,
+.status[data-state="busy"]::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  border: 2px solid #d5dcd1;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 850ms linear infinite;
+}
+
+#modelInfo[data-state="error"] {
+  color: var(--danger);
+}
+
+#modelInfo[data-state="ready"] {
+  color: var(--done);
 }
 
 .workspace {
@@ -114,8 +143,8 @@ button:disabled {
 
 .button-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
 .field-label {
@@ -233,6 +262,12 @@ button:disabled {
   color: var(--danger);
 }
 
+.primary-button,
+.stop-button,
+.action-button {
+  font-weight: 650;
+}
+
 .stop-button:hover:not(:disabled) {
   border-color: var(--danger);
 }
@@ -241,6 +276,7 @@ button:disabled {
   min-height: 44px;
   display: flex;
   align-items: center;
+  gap: 8px;
   padding: 10px 12px;
   border-radius: 8px;
   background: #f1f4ee;
@@ -283,6 +319,12 @@ button:disabled {
 
 .status[data-state="done"] {
   color: var(--done);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 #preview {
