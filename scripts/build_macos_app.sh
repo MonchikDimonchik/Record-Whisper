@@ -27,6 +27,33 @@ clean_extended_attributes() {
   fi
 }
 
+sign_app() {
+  local clean_dir
+  local clean_app
+
+  clean_extended_attributes "$APP_DIR"
+  rm -rf "$CONTENTS_DIR/_CodeSignature"
+
+  if codesign --force --deep --sign - "$APP_DIR"; then
+    codesign --verify --deep --strict --verbose=2 "$APP_DIR"
+    return
+  fi
+
+  echo "Retrying signing with a clean app copy..." >&2
+  clean_dir="$(mktemp -d /tmp/record-whisper-sign.XXXXXX)"
+  clean_app="$clean_dir/$APP_NAME.app"
+  ditto --norsrc --noextattr "$APP_DIR" "$clean_app"
+  clean_extended_attributes "$clean_app"
+  rm -rf "$clean_app/Contents/_CodeSignature"
+
+  codesign --force --deep --sign - "$clean_app"
+  codesign --verify --deep --strict --verbose=2 "$clean_app"
+
+  rm -rf "$APP_DIR"
+  ditto --norsrc --noextattr "$clean_app" "$APP_DIR"
+  rm -rf "$clean_dir"
+}
+
 rm -rf "$APP_DIR"
 mkdir -p "$MACOS_DIR" "$BACKEND_RESOURCES_DIR"
 
@@ -118,11 +145,7 @@ chmod +x "$MACOS_DIR/$APP_NAME" "$BACKEND_RESOURCES_DIR/RecordWhisperBackend/Rec
 clean_extended_attributes "$APP_DIR"
 
 if command -v codesign >/dev/null 2>&1; then
-  codesign --force --deep --sign - "$APP_DIR" >/dev/null 2>&1 || {
-    rm -rf "$CONTENTS_DIR/_CodeSignature"
-    clean_extended_attributes "$APP_DIR"
-    echo "Warning: ad-hoc signing skipped; unsigned app will require right-click Open on first launch." >&2
-  }
+  sign_app
 fi
 
 echo "$APP_DIR"
