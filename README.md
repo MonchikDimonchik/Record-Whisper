@@ -10,6 +10,8 @@
 
 [Скачать Record-Whisper для macOS](packages/Record-Whisper-macOS.dmg)
 
+Этот файл хранится прямо в репозитории в `packages/`, поэтому на GitHub его можно скачать из раздела `Скачать` в README.
+
 После открытия DMG перетащите `Record-Whisper` по стрелке в `Applications`.
 
 При первом запуске нужен интернет: приложение скачает модель Whisper `medium`. Это может занять несколько минут. Python runtime и Python-пакеты уже лежат внутри `.app`.
