@@ -733,6 +733,29 @@ async def transcribe(upload: UploadFile = File(...), save: bool = Form(True)) ->
             temp_path.unlink(missing_ok=True)
 
 
+@app.post("/transcribe-path")
+async def transcribe_path(path: str = Form(...), save: bool = Form(True)) -> dict[str, object]:
+    audio_path = Path(path).expanduser()
+    if not audio_path.is_file():
+        raise HTTPException(status_code=400, detail="Файл не найден.")
+
+    try:
+        result = await run_in_threadpool(transcribe_file, audio_path)
+        if save:
+            result["saved"] = await run_in_threadpool(save_artifacts, audio_path, audio_path.name, result)
+        return result
+    except ModelLoadError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Не получилось распознать аудио. "
+                "Проверьте формат файла или попробуйте другой источник."
+            ),
+        ) from exc
+
+
 def open_browser_later(url: str) -> None:
     def open_url() -> None:
         if platform.system() == "Darwin":

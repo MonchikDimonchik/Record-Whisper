@@ -73,21 +73,20 @@
             </button>
           </div>
 
-          <input
-            id="fileInput"
-            type="file"
-            accept="audio/*,video/webm,video/mp4,.m4a,.mp3,.wav,.aiff,.aif,.ogg,.flac,.aac,.webm,.mp4"
-          >
-
-          <label
-            class="action-button file-label"
+          <div
+            class="action-button file-picker"
             id="fileButton"
-            for="fileInput"
             role="button"
             tabindex="0"
+            aria-disabled="false"
           >
-            Распознать аудиофайл
-          </label>
+            <span>Распознать аудиофайл</span>
+            <input
+              id="fileInput"
+              type="file"
+              accept="audio/*,video/webm,video/mp4,.m4a,.mp3,.wav,.aiff,.aif,.ogg,.flac,.aac,.webm,.mp4"
+            >
+          </div>
 
           <div class="status" id="status" role="status">Готово</div>
           <audio id="preview" controls hidden></audio>

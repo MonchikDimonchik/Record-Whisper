@@ -86,6 +86,7 @@ cp -R "$PYINSTALLER_DIST/RecordWhisperBackend" "$BACKEND_RESOURCES_DIR/"
 
 swiftc \
   -framework Cocoa \
+  -framework UniformTypeIdentifiers \
   -framework WebKit \
   "$ROOT_DIR/macos/RecordWhisper/main.swift" \
   -o "$MACOS_DIR/$APP_NAME"

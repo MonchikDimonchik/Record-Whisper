@@ -342,6 +342,47 @@ async function transcribeFile(file, fallbackName = "recording.wav") {
   }
 }
 
+async function transcribeLocalPath(path, displayName = "аудиофайл") {
+  const languageSaved = await saveLanguage(false);
+  if (!languageSaved) {
+    return;
+  }
+
+  if (saveFilesCheckbox.checked) {
+    const saved = await saveOutputDir(false);
+    if (!saved) {
+      setStatus("Папка записи недоступна. Выберите другую папку.", "error");
+      return;
+    }
+  }
+
+  const formData = new FormData();
+  formData.append("path", path);
+  formData.append("save", saveFilesCheckbox.checked ? "true" : "false");
+
+  preview.hidden = true;
+  setControls("transcribing");
+  setStatus(transcriptionStatusText(`Распознаю файл: ${displayName}`), "busy");
+
+  try {
+    const response = await fetch("/transcribe-path", {
+      method: "POST",
+      body: formData,
+    });
+    const data = await jsonOrEmpty(response);
+
+    if (!response.ok) {
+      throw new Error(data.detail || "Ошибка распознавания.");
+    }
+
+    showResult(data);
+  } catch (error) {
+    setStatus(error.message || "Не получилось распознать аудио", "error");
+  } finally {
+    setControls(isSystemRecording ? "recording" : "idle");
+  }
+}
+
 function deviceLabel(device, kind) {
   if (kind === "incoming") {
     if (device.loopback_hint) {
@@ -557,11 +598,23 @@ async function loadConfig() {
   }
 }
 
-fileButton.addEventListener("keydown", (event) => {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    fileInput.click();
+window.recordWhisperSelectedFile = (path, displayName) => {
+  if (!path) {
+    setStatus("Выбор файла отменен.", "idle");
+    return;
   }
+  transcribeLocalPath(path, displayName || "аудиофайл");
+};
+
+fileButton.addEventListener("click", (event) => {
+  const bridge = window.webkit?.messageHandlers?.recordWhisper;
+  if (!bridge || fileButton.getAttribute("aria-disabled") === "true") {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+  bridge.postMessage({ type: "selectAudioFile" });
 });
 
 fileInput.addEventListener("change", async () => {

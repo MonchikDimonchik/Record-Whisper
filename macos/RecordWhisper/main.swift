@@ -1,7 +1,8 @@
 import Cocoa
+import UniformTypeIdentifiers
 import WebKit
 
-final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate, WKScriptMessageHandler {
     private var window: NSWindow!
     private var webView: WKWebView!
     private var backend: Process?
@@ -31,6 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
     private func buildWindow() {
         let configuration = WKWebViewConfiguration()
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
+        configuration.userContentController.add(self, name: "recordWhisper")
 
         webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = self
@@ -48,6 +50,57 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKNavigationDelegate {
         window.makeKeyAndOrderFront(nil)
 
         showLoading()
+    }
+
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.name == "recordWhisper",
+              let body = message.body as? [String: Any],
+              body["type"] as? String == "selectAudioFile" else {
+            return
+        }
+
+        openAudioFilePanel()
+    }
+
+    private func openAudioFilePanel() {
+        let panel = NSOpenPanel()
+        panel.title = "Выберите аудиофайл"
+        panel.prompt = "Распознать"
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.allowedContentTypes = [
+            .audio,
+            .movie,
+            .mpeg4Movie,
+            .quickTimeMovie,
+        ]
+
+        panel.beginSheetModal(for: window) { [weak self] response in
+            guard let self else { return }
+
+            guard response == .OK, let fileURL = panel.url else {
+                self.callJavaScript(function: "recordWhisperSelectedFile", arguments: ["", ""])
+                return
+            }
+
+            self.callJavaScript(
+                function: "recordWhisperSelectedFile",
+                arguments: [fileURL.path, fileURL.lastPathComponent]
+            )
+        }
+    }
+
+    private func callJavaScript(function: String, arguments: [String]) {
+        let encodedArguments = arguments.map { value -> String in
+            guard let data = try? JSONEncoder().encode(value),
+                  let json = String(data: data, encoding: .utf8) else {
+                return "\"\""
+            }
+            return json
+        }.joined(separator: ", ")
+
+        webView.evaluateJavaScript("window.\(function)(\(encodedArguments));")
     }
 
     private func showLoading(_ message: String = "Record-Whisper запускается. При первом запуске приложение скачает модель Whisper, это может занять несколько минут.") {
